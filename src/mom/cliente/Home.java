@@ -3,14 +3,20 @@ package mom.cliente;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
+import javax.jms.JMSException;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.command.ActiveMQQueue;
+
 import lombok.Getter;
 import mom.commons.Message;
 import mom.commons.Utils;
+import mom.comunicacao.Publisher;
+import mom.comunicacao.Subscriber;
 
 import java.awt.Color;
 import javax.swing.JTextField;
@@ -25,16 +31,21 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.awt.event.ActionEvent;
 
 public class Home extends JFrame {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static String url = ActiveMQConnection.DEFAULT_BROKER_URL;
 	
 	private Socket connection;
 	private ServerSocket server;
@@ -207,6 +218,7 @@ public class Home extends JFrame {
 	
 	private void btnAtualizarActionPerformed(ActionEvent e) {
 		this.getConnectedUsers();
+		this.getTopicos();
 	}
 	
 	private void btnAbrirConversaActionPerformed(ActionEvent e) {
@@ -214,12 +226,22 @@ public class Home extends JFrame {
 	}
 	
 	private void btnCriarTopicoActionPerformed(ActionEvent e) {
-		String valor = JOptionPane.showInputDialog(this, "Nome do tópico");
-		System.out.println(valor);
+		String nomeTopico = JOptionPane.showInputDialog(this, "Nome do tópico");
+		String mensagem = JOptionPane.showInputDialog(this, "Mensagem");
+		
+		Publisher publisher = new Publisher(nomeTopico, mensagem);
+		try {
+			publisher.execute();
+		} catch (JMSException e1) {
+			e1.printStackTrace();
+		}
 	}
 	
 	private void btnAderirTopicoActionPerformed(ActionEvent e) {
-		
+		if(this.listTopicos.getSelectedIndex() != -1) {
+			String nomeTopico = this.listTopicos.getSelectedValue().toString();
+			Chat chat = new Chat(nomeTopico);
+		}
 	}
 	
 	private void getConnectedUsers() {
@@ -236,6 +258,30 @@ public class Home extends JFrame {
 		}
 		
 		listContatos.setListData(connectedUsers.toArray(new String[connectedUsers.size()]));
+	}
+	
+	private void getTopicos() {
+		List<String> topicos = new ArrayList<String>();
+		
+		try {
+			ActiveMQConnection conn = ActiveMQConnection.makeConnection(url);
+			conn.start();
+			
+			Set<ActiveMQQueue> allque = conn.getDestinationSource().getQueues();
+			Iterator<ActiveMQQueue> itr = allque.iterator();
+			
+			while(itr.hasNext()) {
+				ActiveMQQueue queue = itr.next();
+				topicos.add(queue.getQueueName());
+			}
+			
+			listTopicos.setListData(topicos.toArray(new String[topicos.size()]));
+			
+		} catch(JMSException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void openChat() {

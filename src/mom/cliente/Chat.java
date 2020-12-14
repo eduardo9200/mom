@@ -12,6 +12,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+
 import mom.commons.Message;
 import mom.commons.Utils;
 
@@ -19,6 +22,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.swing.JButton;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -31,6 +43,8 @@ import java.net.Socket;
 
 public class Chat extends JFrame {
 
+	private static String url = ActiveMQConnection.DEFAULT_BROKER_URL;
+	
 	private String connection_info;
 	private List<String> message_list;
 	
@@ -38,6 +52,8 @@ public class Chat extends JFrame {
 	private Socket connection;
 	
 	private String titulo;
+	
+	private String nomeTopico;
 	
 	private JPanel contentPane;
 	private JTextField textFieldNome;
@@ -72,9 +88,22 @@ public class Chat extends JFrame {
 		this.connection = connection;
 		this.home = home;
 		this.message_list = new ArrayList<String>();
+		this.nomeTopico = null;
 		
 		this.initComponents();
 		this.initActions();
+		this.setVisible(true);
+	}
+	
+	public Chat(String nomeTopico) {
+		this.nomeTopico = nomeTopico;
+		this.message_list = new ArrayList<String>();
+		
+		this.initComponents();
+		this.initActions();
+		
+		implementaSubscriber();
+		
 		this.setVisible(true);
 	}
 	
@@ -177,6 +206,52 @@ public class Chat extends JFrame {
 		});
 	}
 	
+	public void implementaSubscriber() {
+		 try {
+	            /*
+	             * Estabelecendo conexão com o Servidor JMS
+	             */		
+	            ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
+	            Connection connection = connectionFactory.createConnection();
+	            connection.start();
+
+	            /*
+	             * Criando Session 
+	             */
+	            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+	            /*
+	             * Criando Topic
+	             */ 
+	            Destination dest = session.createTopic(this.nomeTopico);
+
+	            /*
+	             * Criando Consumidor
+	             */
+	            MessageConsumer subscriber = session.createConsumer(dest);
+
+	            /*
+	             * Setando Listener
+	             */
+	            subscriber.setMessageListener((MessageListener) this);
+
+	        } catch(JMSException e) {
+	        	System.out.println("Erro: " + e);
+	        }
+	}
+	
+	public void onMessage(Message message) {
+        if(message instanceof TextMessage) {
+            try {
+            	this.appendMessage(((TextMessage)message).getText());
+                System.out.println(((TextMessage)message).getText());
+            }
+            catch(JMSException e) {
+                System.out.println("Erro: " + e);
+            }
+        }
+    }  
+	
 	public void appendMessage(String received) {
 		message_list.add(received);
 		String message = "";
@@ -189,15 +264,66 @@ public class Chat extends JFrame {
 	
 	private void send() {
 		if(this.textFieldMensagem.getText().length() > 0) {
-			DateFormat df = new SimpleDateFormat("hh:mm:ss");
-			
-			String messageToSend = "[" + df.format(new Date()) + "]" + Utils.getNomeUsuario(connection_info) + ": " + this.textFieldMensagem.getText() + "\n";
-			//String messageToMe = "[" + df.format(new Date()) + "] EU: " + this.textFieldMensagem.getText() + "\n";
-			
-			Utils.sendMessage(connection, Message.MESSAGE + ";" + messageToSend);
-			this.appendMessage(messageToSend);
-			this.textFieldMensagem.setText("");
+			if(this.nomeTopico != null && !this.nomeTopico.isEmpty()) { //Está inscrito em um tópico
+				try {
+					implementaPublisher(this.nomeTopico, this.textFieldMensagem.getText());
+				} catch (JMSException e) {
+					e.printStackTrace();
+				}
+				
+			} else {
+				DateFormat df = new SimpleDateFormat("hh:mm:ss");
+				
+				String messageToSend = "[" + df.format(new Date()) + "]" + Utils.getNomeUsuario(connection_info) + ": " + this.textFieldMensagem.getText() + "\n";
+				//String messageToMe = "[" + df.format(new Date()) + "] EU: " + this.textFieldMensagem.getText() + "\n";
+				
+				boolean mensagemEnviada = Utils.sendMessage(connection, Message.MESSAGE + ";" + messageToSend);
+				
+				if(!mensagemEnviada) {
+					
+				}
+				
+				this.appendMessage(messageToSend);
+				this.textFieldMensagem.setText("");	
+			}
 		}		
+	}
+	
+	public void implementaPublisher(String nomeTopico, String mensagem) throws JMSException {
+		/*
+         * Estabelecendo conexão com o Servidor JMS
+         */		
+        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
+        Connection connection = connectionFactory.createConnection();
+        connection.start();
+
+        /*
+         * Criando Session 
+         */		
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+        /*
+         * Criando Topic
+         */     
+        Destination dest = session.createTopic(nomeTopico);
+
+        /*
+         * Criando Produtor
+         */
+        MessageProducer publisher = session.createProducer(dest);
+
+        TextMessage message = session.createTextMessage();
+        message.setText(mensagem);
+
+
+        /*
+         * Publicando Mensagem
+         */
+        publisher.send(message);
+
+        publisher.close();
+        session.close();
+        connection.close();
 	}
 	
 	private void btnEnviarActionPerformed(ActionEvent e) {
