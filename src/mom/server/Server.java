@@ -16,7 +16,7 @@ public class Server {
 	public static final int PORT = 4444;
 	
 	private ServerSocket server;
-	@Getter
+	
 	private Map<String, ClientListener> clients;
 	
 	public Server(int port) {
@@ -62,5 +62,9 @@ public class Server {
 			}*/
 		}
 		return true;
+	}
+	
+	public Map<String, ClientListener> getClients() {
+		return this.clients;
 	}
 }

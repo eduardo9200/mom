@@ -3,21 +3,19 @@ package mom.cliente;
 import java.io.IOException;
 import java.net.Socket;
 
-import lombok.Getter;
-import lombok.Setter;
 import mom.commons.Message;
 import mom.commons.Utils;
 
 public class ClientListenerCL implements Runnable {
 
-	@Getter @Setter
+	
 	private boolean running;
-	@Getter @Setter
+	
 	private boolean chatOpen;
 	private Socket connection;
 	private Home home;
 	private String connectionInfo;
-	@Getter @Setter
+	
 	private Chat chat;
 	
 	public ClientListenerCL(Home home, Socket connection) {
@@ -80,5 +78,30 @@ public class ClientListenerCL implements Runnable {
 			System.out.println(">> Mensagem: " + message);
 		}
 		
+	}
+	
+	
+	public boolean getRunning() {
+		return this.running;
+	}
+	
+	public void setRunning(boolean run) {
+		this.running = run;
+	}
+	
+	public boolean getChatOpen() {
+		return this.chatOpen;
+	}
+	
+	public void setChatOpen(boolean open) {
+		this.chatOpen = open;
+	}
+	
+	public Chat getChat() {
+		return this.chat;
+	}
+	
+	public void setChat(Chat chat) {
+		this.chat = chat;
 	}
 }

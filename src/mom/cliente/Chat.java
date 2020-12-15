@@ -14,9 +14,12 @@ import javax.swing.border.EmptyBorder;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 
 import mom.commons.Message;
 import mom.commons.Utils;
+import mom.comunicacao.Consumidor;
+import mom.comunicacao.Subscriber;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -93,11 +96,19 @@ public class Chat extends JFrame {
 		this.initComponents();
 		this.initActions();
 		this.setVisible(true);
+		
+		Consumidor c = new Consumidor(Utils.getNomeUsuario(connection_info));
+		try {
+			c.execute();
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public Chat(String nomeTopico) {
+	public Chat(String nomeTopico, String connectionInfo) {
 		this.nomeTopico = nomeTopico;
 		this.message_list = new ArrayList<String>();
+		this.connection_info = connectionInfo;
 		
 		this.initComponents();
 		this.initActions();
@@ -207,37 +218,8 @@ public class Chat extends JFrame {
 	}
 	
 	public void implementaSubscriber() {
-		 try {
-	            /*
-	             * Estabelecendo conexão com o Servidor JMS
-	             */		
-	            ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
-	            Connection connection = connectionFactory.createConnection();
-	            connection.start();
-
-	            /*
-	             * Criando Session 
-	             */
-	            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-	            /*
-	             * Criando Topic
-	             */ 
-	            Destination dest = session.createTopic(this.nomeTopico);
-
-	            /*
-	             * Criando Consumidor
-	             */
-	            MessageConsumer subscriber = session.createConsumer(dest);
-
-	            /*
-	             * Setando Listener
-	             */
-	            subscriber.setMessageListener((MessageListener) this);
-
-	        } catch(JMSException e) {
-	        	System.out.println("Erro: " + e);
-	        }
+		Subscriber sub = new Subscriber(this.nomeTopico);
+		sub.execute();
 	}
 	
 	public void onMessage(Message message) {

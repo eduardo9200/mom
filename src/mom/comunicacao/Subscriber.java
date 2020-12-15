@@ -4,6 +4,7 @@ import javax.jms.*;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 
 public class Subscriber {
 
@@ -47,7 +48,7 @@ public class Subscriber {
             /*
              * Setando Listener
              */
-            subscriber.setMessageListener((MessageListener) this);
+            subscriber.setMessageListener(new MessageListenerAdapter(this));
 
         } catch(JMSException e) {
         	System.out.println("Erro: " + e);

@@ -9,10 +9,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import javax.swing.JTextField;
-import net.miginfocom.swing.MigLayout;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.RowSpec;
 
 import mom.commons.Message;
 import mom.commons.Utils;

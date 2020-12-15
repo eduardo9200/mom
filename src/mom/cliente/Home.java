@@ -15,6 +15,8 @@ import org.apache.activemq.command.ActiveMQQueue;
 import lombok.Getter;
 import mom.commons.Message;
 import mom.commons.Utils;
+import mom.comunicacao.Consumidor;
+import mom.comunicacao.Produtor;
 import mom.comunicacao.Publisher;
 import mom.comunicacao.Subscriber;
 
@@ -50,13 +52,13 @@ public class Home extends JFrame {
 	private Socket connection;
 	private ServerSocket server;
 	private boolean running;
-	@Getter
+	
 	private String connection_info;
 	
 	private List<String> connectedUsers;
-	@Getter
+	
 	private List<String> opened_chats;
-	@Getter
+	
 	private Map<String, ClientListenerCL> connectedListeners;
 	
 	private JPanel contentPane;
@@ -101,6 +103,8 @@ public class Home extends JFrame {
 		
 		this.initComponents();
 		this.initActions();
+		
+		this.criaProdutor();
 		
 		startServer(this, Integer.parseInt(connection_info.split(":")[2]));
 	}
@@ -232,6 +236,8 @@ public class Home extends JFrame {
 		Publisher publisher = new Publisher(nomeTopico, mensagem);
 		try {
 			publisher.execute();
+			
+			Chat chat = new Chat(nomeTopico, this.connection_info);
 		} catch (JMSException e1) {
 			e1.printStackTrace();
 		}
@@ -240,7 +246,17 @@ public class Home extends JFrame {
 	private void btnAderirTopicoActionPerformed(ActionEvent e) {
 		if(this.listTopicos.getSelectedIndex() != -1) {
 			String nomeTopico = this.listTopicos.getSelectedValue().toString();
-			Chat chat = new Chat(nomeTopico);
+			Chat chat = new Chat(nomeTopico, this.connection_info);
+		}
+	}
+	
+	private void criaProdutor() {
+		Produtor p = new Produtor(Utils.getNomeUsuario(connection_info), "Oi");
+		
+		try {
+			p.execute();
+		} catch (JMSException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -336,5 +352,18 @@ public class Home extends JFrame {
 				}
 			}
 		}.start();
+	}
+	
+	
+	public String getConnection_info() {
+		return this.connection_info;
+	}
+	
+	public List<String> getOpened_chats() {
+		return this.opened_chats;
+	}
+	
+	public Map<String, ClientListenerCL> getConnectedListeners() {
+		return this.connectedListeners;
 	}
 }

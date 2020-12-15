@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
 
-import lombok.Getter;
-import lombok.Setter;
 import mom.commons.Message;
 import mom.commons.Utils;
 
@@ -14,7 +12,7 @@ public class ClientListener implements Runnable {
 	private String connectionInfo;
 	private Socket connection;
 	private Server server;
-	@Getter @Setter
+	
 	private boolean running;
 	
 	public ClientListener(String connectionInfo, Socket connection, Server server) {
@@ -55,5 +53,13 @@ public class ClientListener implements Runnable {
 				System.out.println("Recebido: " + message);
 			}
 		}
+	}
+	
+	public boolean getRunning() {
+		return this.running;
+	}
+	
+	public void setRunning(boolean run) {
+		this.running = run;
 	}
 }

@@ -6,12 +6,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="miglayout15-swing.jar" sourcepath="miglayout-src.zip"/>
-	<classpathentry kind="lib" path="jgoodies-forms-1.8.0.jar" sourcepath="jgoodies-forms-1.8.0-sources.jar"/>
-	<classpathentry kind="lib" path="C:/Users/eduma/OneDrive/Área de Trabalho/Lombok 1.16.6/1.16.6/lombok-1.16.6.jar"/>
 	<classpathentry kind="lib" path="C:/Users/eduma/Downloads/javax.annotation-api-1.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/eduardo.maia/Desktop/apache-activemq-5.16.0-bin/apache-activemq-5.16.0/activemq-all-5.16.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/eduardo.maia/Desktop/javax.annotation-api-1.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/eduardo.maia/Desktop/lombok-1.16.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/eduma/OneDrive/Área de Trabalho/apache-activemq-5.16.0/activemq-all-5.16.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/eduma/OneDrive/Área de Trabalho/1.16.6/lombok-1.16.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
