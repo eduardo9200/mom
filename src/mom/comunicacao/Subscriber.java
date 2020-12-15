@@ -6,7 +6,7 @@ import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 
-public class Subscriber {
+public class Subscriber implements MessageListener {
 
 	/*
      * URL do servidor JMS. DEFAULT_BROKER_URL indica que o servidor está em localhost
@@ -48,7 +48,7 @@ public class Subscriber {
             /*
              * Setando Listener
              */
-            subscriber.setMessageListener(new MessageListenerAdapter(this));
+            subscriber.setMessageListener(this);
 
         } catch(JMSException e) {
         	System.out.println("Erro: " + e);

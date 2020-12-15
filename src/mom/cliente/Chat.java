@@ -176,12 +176,13 @@ public class Chat extends JFrame {
 
 			@Override
 			public void windowClosing(WindowEvent e) {
-				Utils.sendMessage(connection, Message.CHAT_CLOSE);
-				home.getOpened_chats().remove(connection_info);
-				home.getConnectedListeners().get(connection_info).setChatOpen(false);
-				home.getConnectedListeners().get(connection_info).setRunning(false);
-				home.getConnectedListeners().remove(connection_info);
-				
+				if(connection != null) {
+					Utils.sendMessage(connection, Message.CHAT_CLOSE);
+					home.getOpened_chats().remove(connection_info);
+					home.getConnectedListeners().get(connection_info).setChatOpen(false);
+					home.getConnectedListeners().get(connection_info).setRunning(false);
+					home.getConnectedListeners().remove(connection_info);
+				}
 			}
 
 			@Override

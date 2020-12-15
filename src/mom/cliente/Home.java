@@ -11,6 +11,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.command.ActiveMQTopic;
 
 import lombok.Getter;
 import mom.commons.Message;
@@ -149,7 +150,7 @@ public class Home extends JFrame {
 		btnAtualizar.setBounds(353, 17, 106, 34);
 		contentPane.add(btnAtualizar);
 		
-		btnCriarTopico = new JButton("Criar t\u00F3pico");
+		btnCriarTopico = new JButton("Criar Fila/Top.");
 		btnCriarTopico.setBounds(275, 403, 106, 34);
 		contentPane.add(btnCriarTopico);
 		
@@ -162,7 +163,7 @@ public class Home extends JFrame {
 		listTopicos = new JList<String>();
 		listTopicos.setBounds(10, 11, 246, 287);
 		panel.add(listTopicos);
-		listTopicos.setBorder(BorderFactory.createTitledBorder("Tópicos existentes"));
+		listTopicos.setBorder(BorderFactory.createTitledBorder("Filas e Tópicos existentes"));
 		listTopicos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	}
 	
@@ -230,16 +231,32 @@ public class Home extends JFrame {
 	}
 	
 	private void btnCriarTopicoActionPerformed(ActionEvent e) {
-		String nomeTopico = JOptionPane.showInputDialog(this, "Nome do tópico");
-		String mensagem = JOptionPane.showInputDialog(this, "Mensagem");
 		
-		Publisher publisher = new Publisher(nomeTopico, mensagem);
-		try {
-			publisher.execute();
+		int opcao = JOptionPane.showConfirmDialog(this, "Criar Fila?",  "Fila ou tópico", JOptionPane.YES_NO_OPTION);
+		
+		if(opcao == 0) {
+			String nomeFila = JOptionPane.showInputDialog(this, "Nome da fila");
+			String mensagem = JOptionPane.showInputDialog(this, "Mensagem");
 			
-			Chat chat = new Chat(nomeTopico, this.connection_info);
-		} catch (JMSException e1) {
-			e1.printStackTrace();
+			Produtor produtor = new Produtor(nomeFila, mensagem);
+			try {
+				produtor.execute();
+			} catch (JMSException e1) {
+				e1.printStackTrace();
+			}
+		
+		} else if(opcao == 1) {
+			String nomeTopico = JOptionPane.showInputDialog(this, "Nome do tópico");
+			String mensagem = JOptionPane.showInputDialog(this, "Mensagem");
+			
+			Publisher publisher = new Publisher(nomeTopico, mensagem);
+			try {
+				publisher.execute();
+				
+				Chat chat = new Chat(nomeTopico, this.connection_info);
+			} catch (JMSException e1) {
+				e1.printStackTrace();
+			}	
 		}
 	}
 	
@@ -278,18 +295,35 @@ public class Home extends JFrame {
 	
 	private void getTopicos() {
 		List<String> topicos = new ArrayList<String>();
+		int filas = 0;
+		int topics = 0;
 		
 		try {
 			ActiveMQConnection conn = ActiveMQConnection.makeConnection(url);
 			conn.start();
 			
 			Set<ActiveMQQueue> allque = conn.getDestinationSource().getQueues();
-			Iterator<ActiveMQQueue> itr = allque.iterator();
+			Set<ActiveMQTopic> allTop = conn.getDestinationSource().getTopics();
 			
+			Iterator<ActiveMQQueue> itr = allque.iterator();
+			Iterator<ActiveMQTopic> itrTop = allTop.iterator();
+			
+			topicos.add("<- FILAS ->");
 			while(itr.hasNext()) {
 				ActiveMQQueue queue = itr.next();
 				topicos.add(queue.getQueueName());
+				filas++;
 			}
+			
+			topicos.add("<- TÓPICOS ->");			
+			while(itrTop.hasNext()) {
+				ActiveMQTopic topic = itrTop.next();
+				topicos.add(topic.getTopicName());
+				topics++;
+			}
+			
+			String info = filas + " Filas e " + topics + " tópicos";
+			topicos.add(info);
 			
 			listTopicos.setListData(topicos.toArray(new String[topicos.size()]));
 			
